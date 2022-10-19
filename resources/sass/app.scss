@@ -1,0 +1,18 @@
+@import "~bootstrap/scss/bootstrap";
+
+.btn-toggle::before {
+    width: 1.25em;
+    line-height: 0;
+    transition: transform .35s ease;
+    transform-origin: 0.5em 50%;
+}
+
+.btn-toggle[aria-expanded="true"]::before {
+    transform: rotate(90deg);
+}
+
+.btn-toggle-nav a {
+    padding: 0.1875rem 0.5rem;
+    margin-top: 0.125rem;
+    margin-left: 1.25rem;
+}
