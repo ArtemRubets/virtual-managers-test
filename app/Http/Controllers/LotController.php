@@ -9,6 +9,8 @@ use App\Models\Lot;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\LotRepositoryInterface;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LotController extends Controller
 {
@@ -65,15 +67,27 @@ class LotController extends Controller
         $categoriesInput = $request->get('lot_categories', []);
         $lotInput = $request->safe()->only(['name', 'description']);
 
-        $newLot = Lot::create($lotInput);
+        DB::beginTransaction();
 
-        if ($newLot){
+        try {
+            $newLot = Lot::create($lotInput);
             $newLot->categories()->attach($categoriesInput);
+
+            $status = true;
+
+            DB::commit();
+
+        }catch (\Exception $e){
+            Log::error($e->getMessage());
+
+            $status = false;
+
+            DB::rollBack();
         }
 
         $response = [
-            'status' => (bool) $newLot,
-            'message' => (bool) $newLot ? 'Lot was successfully created' : 'Something went wrong...Try again'
+            'status' => $status,
+            'message' => $status ? 'Lot was successfully created' : 'Something went wrong...Try again'
         ];
 
         return redirect()->route('lots.edit', $newLot)->with('response', $response);
@@ -118,10 +132,23 @@ class LotController extends Controller
         $categoriesInput = $request->get('lot_categories', []);
         $lotInput = $request->safe()->only(['name', 'description']);
 
-        $status = $lot->update($lotInput);
 
-        if ($status){
+        DB::beginTransaction();
+
+        try {
+            $lot->update($lotInput);
             $lot->categories()->sync($categoriesInput);
+
+            $status = true;
+
+            DB::commit();
+
+        }catch (\Exception $e){
+            Log::error($e->getMessage());
+
+            $status = false;
+
+            DB::rollBack();
         }
 
         $response = [

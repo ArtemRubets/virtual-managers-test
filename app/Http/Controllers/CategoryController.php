@@ -6,6 +6,8 @@ use App\Http\Requests\CategoryRequest;
 use App\Models\Category;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CategoryController extends Controller
 {
@@ -15,7 +17,7 @@ class CategoryController extends Controller
 
     /**
      * Display a listing of the resource.
-     * @var Paginator $lots
+     * @var Paginator $categories
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
      */
     public function index()
@@ -49,11 +51,25 @@ class CategoryController extends Controller
     {
         $validated = $request->validated();
 
-        $newCategory = Category::create($validated);
+        DB::beginTransaction();
+
+        try {
+            $newCategory = Category::create($validated);
+            $status = true;
+
+            DB::commit();
+
+        }catch (\Exception $e){
+            Log::error($e->getMessage());
+
+            $status = false;
+
+            DB::rollBack();
+        }
 
         $response = [
-            'status' => (bool) $newCategory,
-            'message' => (bool) $newCategory ? 'Category was successfully created' : 'Something went wrong...Try again'
+            'status' => $status,
+            'message' => $status ? 'Category was successfully created' : 'Something went wrong...Try again'
         ];
 
         return redirect()->route('categories.edit', $newCategory)->with('response', $response);
@@ -92,7 +108,21 @@ class CategoryController extends Controller
     {
         $validated = $request->validated();
 
-        $status = $category->update($validated);
+        DB::beginTransaction();
+
+        try {
+            $category->update($validated);
+            $status = true;
+
+            DB::commit();
+
+        }catch (\Exception $e){
+            Log::error($e->getMessage());
+
+            $status = false;
+
+            DB::rollBack();
+        }
 
         $response = [
             'status' => $status,
