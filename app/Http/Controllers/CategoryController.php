@@ -22,7 +22,7 @@ class CategoryController extends Controller
     {
         $categories = $this->categoryRepository->getAllWithPaginate();
 
-        if (empty($categories->items())) return redirect()->to($categories->previousPageUrl());
+        if (empty($categories->items()) && $categories->hasPages()) return redirect()->to($categories->previousPageUrl());
 
         return view('categories.index', compact('categories'));
     }

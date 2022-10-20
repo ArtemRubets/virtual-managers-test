@@ -34,7 +34,8 @@ class LotController extends Controller
 
         $lots = $this->lotRepository->getAllWithFilterablePaginate($filter);
 
-        if (empty($lots->items()) && empty($filter->queryParams)){
+
+        if ( (empty($lots->items()) && $lots->hasPages()) && empty($filter->queryParams)  ){
             return redirect()->to($lots->withQueryString()->previousPageUrl());
         }
 
